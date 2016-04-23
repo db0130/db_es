@@ -1,0 +1,78 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.jsb.synonymPlugin</groupId>
+	<artifactId>synonymPlugin</artifactId>
+	<packaging>jar</packaging>
+	<version>1.0.1</version>
+	<name>synonymPlugin</name>
+	<url>http://maven.apache.org</url>
+	<description>synonym-plugin</description>
+	<properties>
+		<elasticsearch.assembly.descriptor>${project.basedir}/src/main/assemblies/plugin.xml</elasticsearch.assembly.descriptor>		
+        <maven.compiler.target>1.7</maven.compiler.target>
+        <elasticsearch.version>2.1.1</elasticsearch.version>
+        <elasticsearch.plugin.name>elasticsearch-synonym</elasticsearch.plugin.name>
+        <elasticsearch.plugin.classname>org.elasticsearch.plugin.synonym.SynonymPlugin</elasticsearch.plugin.classname>
+        <elasticsearch.plugin.jvm>true</elasticsearch.plugin.jvm>
+        <elasticsearch.plugin.site>false</elasticsearch.plugin.site>
+        <elasticsearch.plugin.isolated>false</elasticsearch.plugin.isolated>
+	</properties>
+	<repositories>
+
+		<repository>
+			<id>elasticsearch-releases</id>
+			<url>https://maven.elasticsearch.org/releases</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+
+	</repositories>
+	<dependencies>
+
+
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+			<version>${elasticsearch.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- <dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency> -->
+	</dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<outputDirectory>${project.build.directory}/releases/</outputDirectory>
+					<descriptors>
+						<descriptor>${basedir}/src/main/assemblies/plugin.xml</descriptor>
+					</descriptors>
+					<!-- <archive>
+						<manifest>
+							<mainClass>fully.qualified.MainClass</mainClass>
+						</manifest>
+					</archive> -->
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>
