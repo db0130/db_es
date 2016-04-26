@@ -32,7 +32,7 @@ import org.elasticsearch.threadpool.ThreadPool;
 @AnalysisSettingsRequired
 public class SynonymTokenFilterFactory extends AbstractTokenFilterFactory {
 	
-	
+	private final String GAP = "#####";
     private SynonymMap synonymMap;
     private final boolean ignoreCase;
     private volatile ScheduledFuture scheduledFuture;
@@ -40,6 +40,7 @@ public class SynonymTokenFilterFactory extends AbstractTokenFilterFactory {
     private final Analyzer analyzer;
     private final boolean expand;
     private final TimeValue interval;
+    private int lastMaxId = 0;
     @Inject
     public SynonymTokenFilterFactory(Index index, IndexSettingsService indexSettingsService, Environment env, IndicesAnalysisService indicesAnalysisService, Map<String, TokenizerFactoryFactory> tokenizerFactories,
                                      @Assisted String name, @Assisted Settings settings,ThreadPool threadPool) {
@@ -118,15 +119,25 @@ public class SynonymTokenFilterFactory extends AbstractTokenFilterFactory {
 				} catch (IOException e) {
 					Loggers.getLogger(getClass()).error(e.getMessage(), e);
 				}
-	        	Reader rulesReader = new FastStringReader(synonymText);
-				SynonymMap.Builder parser = new SolrSynonymParser(true, expand, analyzer);
-	            try {
-					((SolrSynonymParser) parser).parse(rulesReader);
+	        	int indexOfSize = synonymText.indexOf(GAP);
+	        	if(indexOfSize > 0){
+	        		int currId = Integer.parseInt(synonymText.substring(0,indexOfSize));
+	            	Loggers.getLogger(getClass()).info("Synonym Synchronize lastMaxId = {}",lastMaxId);
+	            	if(currId > lastMaxId){
+	            		Reader rulesReader = new FastStringReader(synonymText.substring(indexOfSize)+GAP.length());
+						SynonymMap.Builder parser = new SolrSynonymParser(true, expand, analyzer);
+			            try {
+							((SolrSynonymParser) parser).parse(rulesReader);
 
-		            synonymMap = parser.build();
-				} catch (Exception e) {
-					Loggers.getLogger(getClass()).error(e.getMessage(), e);
-				}
+				            synonymMap = parser.build();
+				            lastMaxId = currId;
+			            	Loggers.getLogger(getClass()).info("Synonym Synchronize text = {} , lastMaxId = {}",synonymText.substring(indexOfSize)+GAP.length(),lastMaxId);
+						} catch (Exception e) {
+							Loggers.getLogger(getClass()).error(e.getMessage(), e);
+						}
+	            	}	            	
+	        	}
+	        	
 	            
 			}
 
