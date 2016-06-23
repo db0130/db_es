@@ -97,6 +97,14 @@ public class SynonymTokenFilterFactory extends AbstractTokenFilterFactory {
             synonymMap = parser.build();
         } catch (Exception e) {
             throw new IllegalArgumentException("failed to build synonyms", e);
+        }finally{
+        	if(rulesReader != null){
+        		try {
+					rulesReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+        	}
         }
         
         Loggers.getLogger(getClass()).info("init SynonymMonitor interval= {}",interval);

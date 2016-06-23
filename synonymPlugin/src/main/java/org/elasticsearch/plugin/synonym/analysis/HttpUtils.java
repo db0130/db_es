@@ -1,10 +1,9 @@
 package org.elasticsearch.plugin.synonym.analysis;
 
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -33,7 +32,7 @@ public class HttpUtils{
 	private static String doPost(String url, Map<String, String> params,
 			int connectTimeout, int readTimeout, Map<String, String> headerMap) throws IOException {
 		HttpURLConnection conn = null;
-		OutputStream out = null;
+		OutputStreamWriter writer = null;
 		String rsp = null;
 		try {
 
@@ -51,21 +50,21 @@ public class HttpUtils{
 			String query = buildQuery(params);
 			
 			//System.out.println(query);
-			byte[] content = {};
-			if (query != null) {
+			//byte[] content = {};
+			/*if (query != null) {
 				content = query.getBytes("UTF-8");
-			}
-			
-			out = conn.getOutputStream();
-			out.write(content);
+			}*/
+			writer =  new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
+			 
+			writer.write((query == null)?"":query);
+			writer.flush();
+	           writer.close();
 			rsp = getResponseAsString(conn);
 
 		} catch (IOException e) {
 			throw e;
 		} finally {
-			if (out != null) {
-				out.close();
-			}
+			
 			if (conn != null) {
 				conn.disconnect();
 			}
@@ -73,6 +72,19 @@ public class HttpUtils{
 
 		return rsp;
 	}
+	
+	public static byte[] StreamToByteArray(InputStream in) throws IOException {
+	       byte[] buf = new byte[100];
+	       byte[] dest = new byte[0];
+	       int len = -1;
+	       while ((len = in.read(buf)) != -1) {
+	           byte[] tmp = new byte[dest.length + len];
+	           System.arraycopy(dest, 0, tmp, 0, dest.length);
+	           System.arraycopy(buf, 0, tmp, dest.length, len);
+	           dest = tmp;
+	       }
+	       return dest;
+	   }
 
 	private static HttpURLConnection getConnection(URL url, String method,
 			String ctype, Map<String, String> headerMap) throws IOException {
@@ -81,7 +93,9 @@ public class HttpUtils{
 		conn.setRequestMethod(method);
 		conn.setDoInput(true);
 		conn.setDoOutput(true);
+		conn.setUseCaches(false);
 		conn.setRequestProperty("Accept", "text/xml,text/javascript,text/html");
+		
 		conn.setRequestProperty("Content-Type", ctype);
 		 if (headerMap != null) {
 			 for (Map.Entry<String, String> entry : headerMap.entrySet()) {
@@ -174,8 +188,26 @@ public class HttpUtils{
 			}
 		}
 	}
-
+	
 	private static String getStreamAsString(InputStream stream, String charset)
+			throws IOException {
+		try {
+			DataInputStream dis = new DataInputStream(stream);
+	            byte[] aryZlib = StreamToByteArray(dis);
+	            if (dis != null) {
+	                dis.close();
+	                dis = null;
+	            }
+	    		return new String(aryZlib,charset);
+		} finally {
+			if (stream != null) {
+				stream.close();
+			}
+		}
+	}
+	
+	
+	/*private static String getStreamAsString(InputStream stream, String charset)
 			throws IOException {
 		try {
 			Reader reader = new InputStreamReader(stream, charset);
@@ -193,6 +225,6 @@ public class HttpUtils{
 				stream.close();
 			}
 		}
-	}
+	}*/
 
 }
